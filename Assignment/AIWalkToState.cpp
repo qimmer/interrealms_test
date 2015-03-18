@@ -12,10 +12,10 @@ void UAIWalkToState::OnStateActivated()
 {
     Super::OnStateActivated();
 
-    if( Character )
-    {
-        UNavigationSystem* NavSys = UNavigationSystem::GetCurrent(Character->GetWorld());
+    UNavigationSystem* NavSys = UNavigationSystem::GetCurrent(Character->GetWorld());
 
+    if( Character && NavSys )
+    {
         FNavLocation Result;
         if( NavSys->GetRandomPointInRadius(Character->GetActorLocation(), 600.0f, Result) )
         {
@@ -35,7 +35,6 @@ void UAIWalkToState::OnStateActivated()
             // Could not find a random point to walk to.
             Finish();
         }
-
     }
 }
 

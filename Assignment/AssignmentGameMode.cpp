@@ -2,12 +2,12 @@
 
 #include "Assignment.h"
 #include "AssignmentGameMode.h"
-#include "PlayerCharacter.h"
+#include "AICharacter.h"
 
 AAssignmentGameMode::AAssignmentGameMode(const class FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
 {
-    DefaultPawnClass = APlayerCharacter::StaticClass();
+    DefaultPawnClass = AAICharacter::StaticClass();
 }
 
 void AAssignmentGameMode::StartPlay()

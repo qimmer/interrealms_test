@@ -3,7 +3,6 @@
 #include "Assignment.h"
 #include "GameCamera.h"
 
-
 AGameCamera::AGameCamera(const FObjectInitializer &ObjectInitializer) : ACameraActor(ObjectInitializer)
 {
  	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
@@ -14,12 +13,23 @@ AGameCamera::AGameCamera(const FObjectInitializer &ObjectInitializer) : ACameraA
 void AGameCamera::BeginPlay()
 {
 	Super::BeginPlay();
-	
 }
 
 void AGameCamera::Tick( float DeltaTime )
 {
 	Super::Tick( DeltaTime );
+
+    // Handle look-around
+    FRotator Rotation = GetActorRotation();
+    DeltaYaw += LookStickDirection.X * LookSensitivity;
+    DeltaPitch += -LookStickDirection.Y * LookSensitivity;
+
+    DeltaYaw = FMath::Clamp(DeltaYaw, -180.0f, 180.0f);
+    DeltaPitch = FMath::Clamp(DeltaPitch, -80.0f, 80.0f);
+
+    /*HorizontalModifier += MoveStickDirection.X * DeltaTime * (90.0f - HorizontalModifier);
+    HorizontalModifier *= 0.99f;
+    HorizontalModifier = FMath::Max(-150.0f, FMath::Min(HorizontalModifier, 150.0f));*/
 
     if( Target != nullptr )
     {
@@ -50,12 +60,22 @@ void AGameCamera::Tick( float DeltaTime )
         FHitResult Hit(ForceInit);
         GetWorld()->LineTraceSingle(Hit, LookAtLocation, TargetCameraLocation, ECC_WorldStatic, TraceParams);
 
+        // Handle interfering world geometry
         /*if( Hit.Actor.IsValid() )
             SetActorLocation(Hit.ImpactPoint);
         else*/
             SetActorLocation(TargetCameraLocation);
 
         SetActorRotation(SmoothedRotation);
+
+        if( Target->GetVelocity().Size() > 0.1f )
+        {
+            DeltaYaw *= LookDamping;
+            DeltaPitch *= LookDamping;
+        }
     }
+
+
 }
+
 

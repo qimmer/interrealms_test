@@ -3,7 +3,7 @@
 #include "UObject.h"
 #include "AIState.generated.h"
 
-UCLASS()
+UCLASS(Blueprintable, BlueprintType)
 class ASSIGNMENT_API UAIState : public UObject
 {
     GENERATED_BODY()
@@ -18,9 +18,9 @@ public:
     UFUNCTION()
     void Finish();
 
-    UPROPERTY()
+    UPROPERTY(EditAnywhere)
     class UAIState *NextState;
 
-    UPROPERTY()
+    UPROPERTY(EditAnywhere)
     class AAICharacter *Character;
 };

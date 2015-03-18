@@ -3,6 +3,8 @@
 #pragma once
 
 #include "GameFramework/GameMode.h"
+#include "EdGraph/EdGraphNode.h"
+#include "EdGraph/EdGraphSchema.h"
 #include "AssignmentGameMode.generated.h"
 
 /**

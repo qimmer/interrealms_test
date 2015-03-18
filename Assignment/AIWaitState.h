@@ -22,5 +22,6 @@ public:
     float Seconds;
 
 private:
+    UPROPERTY()
     float Timer;
 };

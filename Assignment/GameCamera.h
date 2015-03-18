@@ -61,4 +61,24 @@ public:
      * @brief TargetHeight The height of the camera
      */
     float TargetHeight;
+
+    UPROPERTY(EditAnywhere)
+    /**
+     * @brief LookSensitivity The sensitivity when looking around with the gamepad
+     */
+    float LookSensitivity;
+
+    UPROPERTY(EditAnywhere)
+    /**
+     * @brief LookDamping The damping factor, which slowly moves the camera into proper position,
+     * when the camera has been rotated when looking.
+     */
+    float LookDamping;
+
+    UPROPERTY(EditAnywhere)
+    /**
+     * @brief LookStickDirection The current direction of the gamepad look stick.
+     * Must be set from the player controlling state
+     */
+    FVector2D LookStickDirection;
 };

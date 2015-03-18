@@ -20,6 +20,9 @@ class ASSIGNMENT_API UCharacterAnimInstance : public UAnimInstance
     float ExamineFactor;
 
     UPROPERTY(EditAnywhere,BlueprintReadWrite,Category=BlendFactors)
+    bool IsHoldingGun;
+
+    UPROPERTY(EditAnywhere,BlueprintReadWrite,Category=BlendFactors)
     float Speed;
 
     UPROPERTY(EditAnywhere,BlueprintReadWrite,Category=BlendFactors)

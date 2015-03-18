@@ -24,5 +24,5 @@ void UAIState::Tick(float DeltaSeconds)
 void UAIState::Finish()
 {
     if( Character )
-        Character->SetState(NextState);
+        Character->SetAIState(NextState);
 }
