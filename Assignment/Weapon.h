@@ -1,7 +1,9 @@
 #pragma once
 
 #include "GameFramework/Actor.h"
+#include "Particles/ParticleSystem.h"
 #include "Weapon.generated.h"
+
 
 UENUM(BlueprintType)
 namespace EWeapon
@@ -14,13 +16,13 @@ namespace EWeapon
     };
 }
 
-USTRUCT()
+USTRUCT(Blueprintable, BlueprintType)
 struct ASSIGNMENT_API FWeaponData
 {
     GENERATED_USTRUCT_BODY()
 
     UPROPERTY(EditDefaultsOnly)
-    bool IsMelee;
+    TEnumAsByte<EWeapon::Type> Type;
 
     UPROPERTY(EditDefaultsOnly)
     float Damage;
@@ -30,6 +32,9 @@ struct ASSIGNMENT_API FWeaponData
 
     UPROPERTY(EditDefaultsOnly)
     float Accuracy;
+
+    UPROPERTY(EditDefaultsOnly)
+    UParticleSystem *ExplosionSystem;
 };
 
 UCLASS()

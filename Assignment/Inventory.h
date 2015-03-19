@@ -1,5 +1,6 @@
 #pragma once
 
+#include "GameFramework/Actor.h"
 #include "Inventory.generated.h"
 
 USTRUCT()

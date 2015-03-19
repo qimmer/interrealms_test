@@ -19,5 +19,4 @@ class ASSIGNMENT_API AAssignmentGameMode : public AGameMode
 	
 	/** Handle stuff on game start */
 	virtual void StartPlay() override;	
-	
 };

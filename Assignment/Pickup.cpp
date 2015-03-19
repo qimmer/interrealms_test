@@ -53,7 +53,7 @@ void APickup::Tick(float DeltaSeconds)
     }
 }
 
-void APickup::Drop()
+void APickup::Drop(bool ReenablePhysics)
 {
     if( ItemActor )
     {
@@ -63,7 +63,8 @@ void APickup::Drop()
             UShapeComponent* Comp = Cast<UShapeComponent>(ItemActor->GetRootComponent());
             if( Comp )
             {
-                Comp->SetSimulatePhysics(true);
+                if( ReenablePhysics )
+                    Comp->SetSimulatePhysics(true);
             }
         }
 
@@ -80,7 +81,7 @@ void APickup::OnTrigger(class AActor* OtherActor, class UPrimitiveComponent* Oth
     {
         if( PlayerCharacter->Pickup(ItemActor) )
         {
-            Drop();
+            Drop(false);
         }
 
     }

@@ -3,6 +3,7 @@
 #pragma once
 
 #include "GameFramework/Character.h"
+#include "Inventory.h"
 #include "AICharacter.generated.h"
 
 class ATriggerableActor;
@@ -39,6 +40,9 @@ public:
     void SetAIState(class UAIState *State);
 
     UFUNCTION()
+    void SetCurrentItem(int32 InventoryIndex);
+
+    UFUNCTION()
     /**
      * @brief Pickup Tries to pick up an actor as an inventory item,
      * such as a weapon etc.
@@ -48,7 +52,7 @@ public:
      * @return True if the item has been picked up. False if we cannot pick
      * it up for some reason, full inventory, inpickupable actor etc.
      */
-    bool Pickup(const AActor *ItemActor);
+    bool Pickup(AActor *ItemActor);
 
     /**
      * @brief Jump Jumps or double jumps
@@ -76,9 +80,21 @@ public:
 
     UPROPERTY(EditAnywhere, Category = "AI")
     float EnemyDetectionRange;
+
+    UPROPERTY(EditAnywhere, Category = "AI")
+    float PunchPower;
+
+    UPROPERTY(EditAnywhere, Category = "AI")
+    float Health;
 	
     UPROPERTY(EditAnywhere, Category = "AI")
     bool IsRunning;
+
+    UPROPERTY(EditAnywhere, Category = "AI")
+    FInventory Inventory;
+
+    UPROPERTY(EditAnywhere, Category = "AI")
+    AActor * CurrentItem;
 
     // Control Parameters
 public:
@@ -125,4 +141,9 @@ private:
     * @return An eventual found trigger actor nearby.
     */
    ATriggerableActor * FindTrigger() const;
+
+   /**
+    * @brief NextAttackTime The time left before we can attack again
+    */
+   float NextAttackTime;
 };

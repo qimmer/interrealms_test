@@ -19,5 +19,6 @@ void AAssignmentGameMode::StartPlay()
 	if (GEngine)
 	{
 		GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, TEXT("Kick Ass!"));
-	}
+    }
 }
+

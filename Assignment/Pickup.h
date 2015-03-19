@@ -19,7 +19,7 @@ public:
      * @brief Drop Drops the item actor and turns into a standard
      * physics-enabled actor and destroys this pickup.
      */
-    void Drop();
+    void Drop(bool ReenablePhysics = true);
 
 protected:
     UFUNCTION()

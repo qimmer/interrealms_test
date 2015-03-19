@@ -6,9 +6,12 @@
 #include "CharacterAnimInstance.h"
 #include "AIController.h"
 #include "TriggerableActor.h"
+#include "Weapon.h"
 
 #include "AIState.h"
 #include "AIStateInterrupter.h"
+
+#define MELEE_DISTANCE 100.0f
 
 // Sets default values
 AAICharacter::AAICharacter()
@@ -17,10 +20,13 @@ AAICharacter::AAICharacter()
 	PrimaryActorTick.bCanEverTick = true;
 
     // Default AI parameters
+    Health = 100.0f;
     RunSpeed = 300.0f;
     WalkSpeed = 100.0f;
+    PunchPower = 20.0f;
     IsRunning = false;
     CurrentState = nullptr;
+    Inventory.Capacity = 8;
 }
 
 // Called when the game starts or when spawned
@@ -45,6 +51,8 @@ void AAICharacter::Tick( float DeltaTime )
 {
 	Super::Tick( DeltaTime );
 
+    NextAttackTime -= DeltaTime;
+
     // Set max speed according to whether we are running or walking
     GetCharacterMovement()->MaxWalkSpeed = IsRunning ? RunSpeed : WalkSpeed;
 
@@ -62,7 +70,6 @@ void AAICharacter::Tick( float DeltaTime )
     UCharacterAnimInstance *AnimInstance = Cast<UCharacterAnimInstance>(GetMesh()->AnimScriptInstance);
     if( AnimInstance )
     {
-        AnimInstance->AttackFactor = IsAttacking ? 1.0f : 0.0f;
 
         FVector Velocity = GetVelocity();
 
@@ -73,6 +80,12 @@ void AAICharacter::Tick( float DeltaTime )
             AnimInstance->Speed = -Velocity.Size() / RunSpeed;
         else
             AnimInstance->Speed = FMath::Min(Velocity.Size() / RunSpeed, 1.5f);
+
+        if( CurrentItem )
+            AnimInstance->IsHoldingGun = Cast<AWeapon>(CurrentItem) != nullptr;
+
+        if( AnimInstance->AttackFactor > 0.0f )
+            AnimInstance->AttackFactor -= DeltaTime;
     }
 
     // Smoothen AI controller rotation
@@ -81,7 +94,6 @@ void AAICharacter::Tick( float DeltaTime )
     {
         AIController->UpdateControlRotation(DeltaTime, false);
     }
-
 }
 
 // Called to bind functionality to input
@@ -105,8 +117,52 @@ void AAICharacter::SetAIState(UAIState *State)
     CurrentState->OnStateActivated();
 }
 
-bool AAICharacter::Pickup(const AActor *ItemActor)
+void AAICharacter::SetCurrentItem(int32 InventoryIndex)
 {
+    if( CurrentItem )
+    {
+        CurrentItem->SetActorEnableCollision(false);
+        CurrentItem->SetActorHiddenInGame(true);
+    }
+
+    if( InventoryIndex >= 0 && InventoryIndex < Inventory.Items.Num() )
+    {
+        CurrentItem = Inventory.Items[InventoryIndex];
+
+        CurrentItem->SetActorEnableCollision(false);
+        CurrentItem->SetActorRelativeLocation(FVector(0, 0, 0));
+        CurrentItem->SetActorRelativeRotation(FRotator(0, 0, 0));
+        CurrentItem->SetActorRelativeScale3D(FVector(1, 1, 1));
+        CurrentItem->AttachRootComponentTo(GetMesh(), TEXT("ItemSocket"));
+        CurrentItem->SetActorHiddenInGame(false);
+    }
+}
+
+bool AAICharacter::Pickup(AActor *ItemActor)
+{
+    if( !ItemActor )
+        return false;
+
+    // If we have got no space, don't pick up
+    if( Inventory.Items.Num() >= Inventory.Capacity )
+        return false;
+
+    // Make sure physics are disabled while it is picked up
+    if( ItemActor->GetRootComponent() )
+    {
+        UShapeComponent* Comp = Cast<UShapeComponent>(ItemActor->GetRootComponent());
+        if( Comp )
+        {
+            Comp->SetSimulatePhysics(false);
+            Comp->Deactivate();
+        }
+    }
+
+    ItemActor->SetActorEnableCollision(false);
+    ItemActor->SetActorHiddenInGame(true);
+
+    SetCurrentItem(Inventory.Items.Add(ItemActor));
+
     return true;
 }
 
@@ -130,16 +186,84 @@ void AAICharacter::Jump()
 
 void AAICharacter::Attack()
 {
+    // If we havent waited long enough since the last attack, ignore this attack.
+    if( NextAttackTime > 0.0f )
+        return;
+
     // First, if we have a nearby triggerable actor, trigger it instead
     // of attacking
     ATriggerableActor *Trigger = FindTrigger();
     if( Trigger )
     {
         Trigger->Trigger();
+        NextAttackTime = 1.0f;
         return;
     }
 
     // If we reach here, attack/shoot!
+
+    // Shoot/throw if we are holding a weapon
+
+    if( CurrentItem && Cast<AWeapon>(CurrentItem) != nullptr )
+    {
+        AWeapon *Weapon = Cast<AWeapon>(CurrentItem);
+
+        if( Weapon->Data.Type == EWeapon::EProjectile )
+        {
+            const FVector& Loc = GetActorLocation();
+            FVector TraceEnd = GetActorLocation() + GetActorForwardVector() * 1500.0f;
+            FHitResult HitInfo;
+            FCollisionQueryParams QParams;
+            QParams.AddIgnoredActor(this);
+            FCollisionObjectQueryParams OParams = FCollisionObjectQueryParams::AllObjects;
+
+            // Find opponent
+            if( GetWorld()->LineTraceSingle(HitInfo, Loc, TraceEnd, QParams, OParams) )
+            {
+
+            }
+        }
+    }
+    else // Else, melee attack
+    {
+        NextAttackTime = 1.0f;
+
+        UCharacterAnimInstance *AnimInstance = Cast<UCharacterAnimInstance>(GetMesh()->AnimScriptInstance);
+        if( AnimInstance )
+            AnimInstance->AttackFactor = 1.0f;
+
+        const FVector& Loc = GetActorLocation();
+        FVector TraceEnd = GetActorLocation() + GetActorForwardVector() * MELEE_DISTANCE;
+        FHitResult HitInfo;
+        FCollisionQueryParams QParams;
+        QParams.AddIgnoredActor(this);
+        FCollisionObjectQueryParams OParams = FCollisionObjectQueryParams::AllObjects;
+
+        // Find opponent
+        if( GetWorld()->LineTraceSingle(HitInfo, Loc, TraceEnd, QParams, OParams) )
+        {
+            FVector PushVector = GetActorForwardVector() * PunchPower + FVector(0, 0, PunchPower * 1.5f);
+
+            ACharacter *Opponent = Cast<ACharacter>(HitInfo.Actor.Get());
+            if( Opponent )
+            {
+                // Launch Character
+                Opponent->LaunchCharacter(PushVector, false, false);
+            }
+            else
+            {
+                // Push actor
+                if( HitInfo.Actor.Get()->GetRootComponent() )
+                {
+                    UPrimitiveComponent* Comp = Cast<UPrimitiveComponent>(HitInfo.Actor.Get()->GetRootComponent());
+                    if( Comp )
+                    {
+                        Comp->AddImpulse(PushVector * 100.0f);
+                    }
+                }
+            }
+        }
+    }
 }
 
 void AAICharacter::OnLanded(const FHitResult &hit)
