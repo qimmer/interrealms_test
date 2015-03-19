@@ -3,6 +3,7 @@
 #include "AICharacter.h"
 #include "AIAttackState.h"
 #include "AIController.h"
+#include "AIWaitState.h"
 
 UAIEnemyInSightStateInterrupter::UAIEnemyInSightStateInterrupter()
 {
@@ -14,6 +15,10 @@ void UAIEnemyInSightStateInterrupter::Tick(float DeltaSeconds)
 
     if( Character && StateOverride )
     {
+        // If we are waiting, don't interrupt (Prevents the enemy in being to hard!)
+        if( Cast<UAIWaitState>(Character->CurrentState) )
+            return;
+
         UAIAttackState *AttackState = Cast<UAIAttackState>(StateOverride);
         if( AttackState )
         {
@@ -42,6 +47,11 @@ AActor *UAIEnemyInSightStateInterrupter::FindEnemy(float Range) const
             for(int32 i = 0; i < Character->Enemies.Num(); ++i )
             {
                 AActor *Enemy = Character->Enemies[i];
+
+                // If its a character, don't attack a dead one
+                AAICharacter *EnemyCharacter = Cast<AAICharacter>(Enemy);
+                if( EnemyCharacter && EnemyCharacter->Health <= 0.0f )
+                    continue;
 
                 // Test if the enemy is out of range
                 if( (Enemy->GetActorLocation() - Character->GetActorLocation()).Size() > Range )

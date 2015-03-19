@@ -4,6 +4,7 @@
 
 #include "GameFramework/Character.h"
 #include "Inventory.h"
+#include "Weapon.h"
 #include "AICharacter.generated.h"
 
 class ATriggerableActor;
@@ -32,6 +33,8 @@ public:
 	// Called to bind functionality to input
 	virtual void SetupPlayerInputComponent(class UInputComponent* InputComponent) override;
 
+    virtual float TakeDamage(float Damage, const FDamageEvent &DamageEvent, AController *EventInstigator, AActor *DamageCauser);
+
     UFUNCTION()
     /**
      * @brief SetAIState Sets the current AI behaviour state
@@ -55,6 +58,11 @@ public:
     bool Pickup(AActor *ItemActor);
 
     /**
+     * @brief Drop Drops current item if any
+     */
+    void Drop();
+
+    /**
      * @brief Jump Jumps or double jumps
      */
     virtual void Jump();
@@ -63,9 +71,9 @@ public:
     /**
      * @brief Attack Performs an attack / fires a shot with the current weapon,
      * or triggers a trigger if nearby.
-     * @return
+     * @return True if an attack has been performed.
      */
-    void Attack();
+    bool Attack();
 
     // AI Parameters
 public:
@@ -82,7 +90,7 @@ public:
     float EnemyDetectionRange;
 
     UPROPERTY(EditAnywhere, Category = "AI")
-    float PunchPower;
+    float PunchPushPower;
 
     UPROPERTY(EditAnywhere, Category = "AI")
     float Health;
@@ -95,6 +103,9 @@ public:
 
     UPROPERTY(EditAnywhere, Category = "AI")
     AActor * CurrentItem;
+
+    UPROPERTY(EditAnywhere, Category = "AI")
+    FWeaponData Fist;
 
     // Control Parameters
 public:
@@ -116,12 +127,13 @@ public:
     UPROPERTY(EditAnywhere, Category = "AI")
     TArray<class UAIState *> States;
 
+    UPROPERTY(VisibleAnywhere, Category = "AI")
+    class UAIState *CurrentState;
+
 protected:
     virtual void OnLanded(const FHitResult& hit);
 
 private:
-    UPROPERTY(VisibleAnywhere, Category = "AI")
-    class UAIState *CurrentState;
 
    /**
     * @brief CanDoubleJump Is true when the player has jumped, but not double jumped yet.

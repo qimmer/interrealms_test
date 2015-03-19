@@ -1,5 +1,6 @@
 #pragma once
 
+#include "Engine/StaticMesh.h"
 #include "GameFramework/Actor.h"
 #include "Particles/ParticleSystem.h"
 #include "Weapon.generated.h"
@@ -21,20 +22,29 @@ struct ASSIGNMENT_API FWeaponData
 {
     GENERATED_USTRUCT_BODY()
 
-    UPROPERTY(EditDefaultsOnly)
+    UPROPERTY(EditAnywhere)
     TEnumAsByte<EWeapon::Type> Type;
 
-    UPROPERTY(EditDefaultsOnly)
+    UPROPERTY(EditAnywhere)
     float Damage;
 
-    UPROPERTY(EditDefaultsOnly)
+    UPROPERTY(EditAnywhere)
     float FireInterval;
 
-    UPROPERTY(EditDefaultsOnly)
+    UPROPERTY(EditAnywhere)
     float Accuracy;
 
-    UPROPERTY(EditDefaultsOnly)
+    UPROPERTY(EditAnywhere)
+    float MaxDistance;
+
+    UPROPERTY(EditAnywhere)
     UParticleSystem *ExplosionSystem;
+
+    UPROPERTY(EditAnywhere)
+    UStaticMesh *ProjectileMesh;
+
+    UPROPERTY(EditAnywhere)
+    TSubclassOf<class AProjectile> ProjectileClass;
 };
 
 UCLASS()
@@ -47,10 +57,10 @@ public:
 
     virtual void BeginPlay() override;
     virtual void Tick( float DeltaSeconds ) override;
-    void Fire();
+    void Fire(AActor *Murderer);
 
 public: // Properties
-    UPROPERTY(EditDefaultsOnly, BlueprintReadWrite)
+    UPROPERTY(EditAnywhere, BlueprintReadWrite)
     FWeaponData Data;
 
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly)

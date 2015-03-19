@@ -26,5 +26,8 @@ class ASSIGNMENT_API UCharacterAnimInstance : public UAnimInstance
     float Speed;
 
     UPROPERTY(EditAnywhere,BlueprintReadWrite,Category=BlendFactors)
+    bool IsDead;
+
+    UPROPERTY(EditAnywhere,BlueprintReadWrite,Category=BlendFactors)
     uint32 IdleVariation;
 };

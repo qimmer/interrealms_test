@@ -29,10 +29,4 @@ public:
      */
     float AttackRange;
 
-private:
-    /**
-     * @brief PreviousRunState The IsRunning state on the character before we started attacking.
-     * This is used, so we can revert to walk state after we have been running.
-     */
-    bool PreviousRunState;
 };

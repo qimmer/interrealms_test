@@ -5,7 +5,7 @@
 
 UAIPlayerControlState::UAIPlayerControlState()
 {
-
+    Sensitivity = 1.5f;
 }
 
 void UAIPlayerControlState::OnStateActivated()
@@ -20,6 +20,8 @@ void UAIPlayerControlState::OnStateActivated()
         Character->InputComponent->BindAction("Jump", IE_Pressed, this, &UAIPlayerControlState::OnStartJump);
         Character->InputComponent->BindAction("Attack", IE_Pressed, this, &UAIPlayerControlState::OnStartAttack);
         Character->InputComponent->BindAction("Attack", IE_Released, this, &UAIPlayerControlState::OnStopAttack);
+        Character->InputComponent->BindAction("ChangeItem", IE_Pressed, this, &UAIPlayerControlState::OnChangeItem);
+        Character->InputComponent->BindAction("DropItem", IE_Pressed, this, &UAIPlayerControlState::OnDropItem);
 
         Character->InputComponent->BindAxis("VerticalLook", this, &UAIPlayerControlState::OnVerticalLook);
         Character->InputComponent->BindAxis("HorizontalLook", this, &UAIPlayerControlState::OnHorizontalLook);
@@ -51,7 +53,7 @@ void UAIPlayerControlState::Tick(float DeltaSeconds)
                 FVector destVector(FMath::Max(MoveStickDirection.Y, 0.0f), MoveStickDirection.X, 0.0f);
                 FRotator RotationAddition = destVector.Rotation();
 
-                DestinationRotation.Yaw += RotationAddition.Yaw;
+                DestinationRotation.Yaw += MoveStickDirection.X * 100.0f;
 
                 Rotation = FMath::RInterpTo(Character->Controller->GetControlRotation(), DestinationRotation, DeltaSeconds, 3.0f);
                 Character->Controller->SetControlRotation(Rotation);
@@ -79,7 +81,30 @@ void UAIPlayerControlState::OnVerticalMove(float Val)
 
 void UAIPlayerControlState::OnHorizontalMove(float Val)
 {
-    MoveStickDirection.X = Val;
+    if( Val < 0.0f )
+        MoveStickDirection.X = -FMath::Pow(FMath::Abs(Val), Sensitivity);
+    else
+        MoveStickDirection.X = FMath::Pow(FMath::Abs(Val), Sensitivity);
+}
+
+void UAIPlayerControlState::OnChangeItem()
+{
+    if( Character )
+    {
+        int32 InventoryIndex;
+        if( !Character->Inventory.Items.Find(Character->CurrentItem, InventoryIndex) )
+            InventoryIndex = 0;
+
+        Character->SetCurrentItem((InventoryIndex + 1) % Character->Inventory.Items.Num());
+    }
+}
+
+void UAIPlayerControlState::OnDropItem()
+{
+    if( Character )
+    {
+        Character->Drop();
+    }
 }
 
 

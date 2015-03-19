@@ -2,7 +2,7 @@
 #include "Pickup.h"
 #include "Components/SphereComponent.h"
 #include "Components/MeshComponent.h"
-#include "AICharacter.h"
+#include "PlayerCharacter.h"
 
 APickup::APickup(const FObjectInitializer &PCIP)
 {
@@ -76,8 +76,8 @@ void APickup::Drop(bool ReenablePhysics)
 
 void APickup::OnTrigger(class AActor* OtherActor, class UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
-    AAICharacter *PlayerCharacter = Cast<AAICharacter>(OtherActor);
-    if( PlayerCharacter && PlayerCharacter->Controller->IsLocalPlayerController() )
+    APlayerCharacter *PlayerCharacter = Cast<APlayerCharacter>(OtherActor);
+    if( PlayerCharacter )
     {
         if( PlayerCharacter->Pickup(ItemActor) )
         {

@@ -11,13 +11,15 @@ AExplosion::AExplosion(const FObjectInitializer &PCIP)
 {
  	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
-    Countdown = 0.0f;
+    Countdown = 0.1f;
 
     Force = PCIP.CreateDefaultSubobject<URadialForceComponent>(this, TEXT("RadialForce"));
     RootComponent = Force;
 
     ParticleSystem = PCIP.CreateDefaultSubobject<UParticleSystemComponent>(this, TEXT("Particles"));
     ParticleSystem->AttachTo(RootComponent);
+
+    InitialLifeSpan = 5.0f;
 }
 
 // Called when the game starts or when spawned
@@ -38,8 +40,23 @@ void AExplosion::Tick( float DeltaTime )
     {
         // Explode!
 
+        Force->ImpulseStrength = 100.0f * Force->Radius;
+        Force->ForceStrength = 5.0f * Force->Radius;
         Force->FireImpulse();
         ParticleSystem->Activate(true);
+
+
+        UGameplayStatics::ApplyRadialDamageWithFalloff(
+                    this,
+                    Force->Radius,
+                    0.0f,
+                    GetActorLocation(),
+                    Force->Radius * 0.1f,
+                    Force->Radius,
+                    1.5f,
+                    TSubclassOf<UDamageType>(),
+                    TArray<AActor*>(),
+                    this);
 
         Countdown = FLT_MAX;
     }

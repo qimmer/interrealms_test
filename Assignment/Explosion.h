@@ -6,6 +6,10 @@
 #include "Explosion.generated.h"
 
 UCLASS()
+/**
+ * @brief The AExplosion class is an explosion actor.
+ * The damage it causes equals to the radius, if the receiver is in the center.
+ */
 class ASSIGNMENT_API AExplosion : public AActor
 {
 	GENERATED_BODY()

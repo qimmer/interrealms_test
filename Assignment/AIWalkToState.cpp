@@ -16,6 +16,12 @@ void UAIWalkToState::OnStateActivated()
 
     if( Character && NavSys )
     {
+        if( Character->Health <= 0.0f )
+        {
+            Finish();
+            return;
+        }
+
         FNavLocation Result;
         if( NavSys->GetRandomPointInRadius(Character->GetActorLocation(), 600.0f, Result) )
         {

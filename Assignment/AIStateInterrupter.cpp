@@ -13,7 +13,7 @@ void UAIStateInterrupter::Tick(float DeltaSeconds)
 
 void UAIStateInterrupter::Interrupt()
 {
-    if( Character && StateOverride )
+    if( Character && StateOverride && Character->CurrentState != StateOverride )
     {
         Character->SetAIState(StateOverride);
     }

@@ -21,6 +21,12 @@ public:
      */
     class AGameCamera* Camera;
 
+    UPROPERTY(EditAnywhere)
+    /**
+     * @brief Sensitivity The sensitivity when turning
+     */
+    float Sensitivity;
+
     // Input handlers
 public:
     UFUNCTION()
@@ -50,6 +56,18 @@ public:
      * @param Val
      */
     void OnHorizontalMove(float Val);
+
+    UFUNCTION()
+    /**
+     * @brief OnChangeItem Handles item/weapon changing
+     */
+    void OnChangeItem();
+
+    UFUNCTION()
+    /**
+     * @brief OnDropItem Handles item/weapon dropping
+     */
+    void OnDropItem();
 
     UFUNCTION()
     /**

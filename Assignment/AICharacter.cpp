@@ -11,8 +11,6 @@
 #include "AIState.h"
 #include "AIStateInterrupter.h"
 
-#define MELEE_DISTANCE 100.0f
-
 // Sets default values
 AAICharacter::AAICharacter()
 {
@@ -23,10 +21,16 @@ AAICharacter::AAICharacter()
     Health = 100.0f;
     RunSpeed = 300.0f;
     WalkSpeed = 100.0f;
-    PunchPower = 20.0f;
+    PunchPushPower = 20.0f;
     IsRunning = false;
     CurrentState = nullptr;
     Inventory.Capacity = 8;
+
+    Fist.Accuracy = 1.0f;
+    Fist.Damage = 0.2f;
+    Fist.FireInterval = 1.0f;
+    Fist.Type = EWeapon::EMelee;
+    Fist.MaxDistance = 160.0f;
 }
 
 // Called when the game starts or when spawned
@@ -83,9 +87,13 @@ void AAICharacter::Tick( float DeltaTime )
 
         if( CurrentItem )
             AnimInstance->IsHoldingGun = Cast<AWeapon>(CurrentItem) != nullptr;
+        else
+            AnimInstance->IsHoldingGun = false;
 
         if( AnimInstance->AttackFactor > 0.0f )
             AnimInstance->AttackFactor -= DeltaTime;
+
+        AnimInstance->IsDead = Health <= 0.0f;
     }
 
     // Smoothen AI controller rotation
@@ -101,6 +109,17 @@ void AAICharacter::SetupPlayerInputComponent(class UInputComponent* InputCompone
 {
 	Super::SetupPlayerInputComponent(InputComponent);
 
+}
+
+float AAICharacter::TakeDamage(float Damage, const FDamageEvent &DamageEvent, AController *EventInstigator, AActor *DamageCauser)
+{
+    Health -= Damage;
+
+    // Launch Character
+    LaunchCharacter(GetActorForwardVector() * -Damage, false, false);
+    GEngine->AddOnScreenDebugMessage(0, 2.0f, FColor::Red, FString::Printf__VA(TEXT("Health: %.1f (- %.1f)"), Health, Damage));
+
+    return Damage;
 }
 
 void AAICharacter::SetAIState(UAIState *State)
@@ -166,6 +185,32 @@ bool AAICharacter::Pickup(AActor *ItemActor)
     return true;
 }
 
+void AAICharacter::Drop()
+{
+    if( CurrentItem )
+    {
+        int32 Index;
+        if( Inventory.Items.Find(CurrentItem, Index) )
+        {
+            Inventory.Items.RemoveAt(Index);
+
+            if( CurrentItem->GetRootComponent() )
+            {
+                UShapeComponent* Comp = Cast<UShapeComponent>(CurrentItem->GetRootComponent());
+                if( Comp )
+                {
+                    Comp->Activate();
+                    Comp->SetSimulatePhysics(true);
+                }
+            }
+
+            CurrentItem->SetActorEnableCollision(true);
+            CurrentItem->SetActorHiddenInGame(false);
+            CurrentItem = nullptr;
+        }
+    }
+}
+
 void AAICharacter::Jump()
 {
     if( CanDoubleJump )
@@ -184,11 +229,11 @@ void AAICharacter::Jump()
     }
 }
 
-void AAICharacter::Attack()
+bool AAICharacter::Attack()
 {
     // If we havent waited long enough since the last attack, ignore this attack.
     if( NextAttackTime > 0.0f )
-        return;
+        return false;
 
     // First, if we have a nearby triggerable actor, trigger it instead
     // of attacking
@@ -197,7 +242,7 @@ void AAICharacter::Attack()
     {
         Trigger->Trigger();
         NextAttackTime = 1.0f;
-        return;
+        return false;
     }
 
     // If we reach here, attack/shoot!
@@ -207,33 +252,19 @@ void AAICharacter::Attack()
     if( CurrentItem && Cast<AWeapon>(CurrentItem) != nullptr )
     {
         AWeapon *Weapon = Cast<AWeapon>(CurrentItem);
-
-        if( Weapon->Data.Type == EWeapon::EProjectile )
-        {
-            const FVector& Loc = GetActorLocation();
-            FVector TraceEnd = GetActorLocation() + GetActorForwardVector() * 1500.0f;
-            FHitResult HitInfo;
-            FCollisionQueryParams QParams;
-            QParams.AddIgnoredActor(this);
-            FCollisionObjectQueryParams OParams = FCollisionObjectQueryParams::AllObjects;
-
-            // Find opponent
-            if( GetWorld()->LineTraceSingle(HitInfo, Loc, TraceEnd, QParams, OParams) )
-            {
-
-            }
-        }
+        NextAttackTime = Weapon->Data.FireInterval;
+        Weapon->Fire(this);
     }
     else // Else, melee attack
     {
-        NextAttackTime = 1.0f;
+        NextAttackTime = Fist.FireInterval;
 
         UCharacterAnimInstance *AnimInstance = Cast<UCharacterAnimInstance>(GetMesh()->AnimScriptInstance);
         if( AnimInstance )
             AnimInstance->AttackFactor = 1.0f;
 
         const FVector& Loc = GetActorLocation();
-        FVector TraceEnd = GetActorLocation() + GetActorForwardVector() * MELEE_DISTANCE;
+        FVector TraceEnd = GetActorLocation() + GetActorForwardVector() * Fist.MaxDistance;
         FHitResult HitInfo;
         FCollisionQueryParams QParams;
         QParams.AddIgnoredActor(this);
@@ -242,13 +273,13 @@ void AAICharacter::Attack()
         // Find opponent
         if( GetWorld()->LineTraceSingle(HitInfo, Loc, TraceEnd, QParams, OParams) )
         {
-            FVector PushVector = GetActorForwardVector() * PunchPower + FVector(0, 0, PunchPower * 1.5f);
+            FVector PushVector = GetActorForwardVector() * PunchPushPower + FVector(0, 0, PunchPushPower * 1.5f);
 
             ACharacter *Opponent = Cast<ACharacter>(HitInfo.Actor.Get());
             if( Opponent )
             {
-                // Launch Character
-                Opponent->LaunchCharacter(PushVector, false, false);
+
+                Opponent->TakeDamage(Fist.Damage * PunchPushPower, FDamageEvent(), Controller, this);
             }
             else
             {
@@ -258,12 +289,15 @@ void AAICharacter::Attack()
                     UPrimitiveComponent* Comp = Cast<UPrimitiveComponent>(HitInfo.Actor.Get()->GetRootComponent());
                     if( Comp )
                     {
-                        Comp->AddImpulse(PushVector * 100.0f);
+                        Comp->AddImpulse(PushVector * 1000.0f);
+                        return true;
                     }
                 }
             }
         }
     }
+
+    return false;
 }
 
 void AAICharacter::OnLanded(const FHitResult &hit)
