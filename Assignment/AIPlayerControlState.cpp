@@ -89,7 +89,7 @@ void UAIPlayerControlState::OnHorizontalMove(float Val)
 
 void UAIPlayerControlState::OnChangeItem()
 {
-    if( Character )
+    if( Character && Character->Inventory.Items.Num() > 1 )
     {
         int32 InventoryIndex;
         if( !Character->Inventory.Items.Find(Character->CurrentItem, InventoryIndex) )

@@ -14,7 +14,7 @@ class ASSIGNMENT_API ATriggerableActor : public AActor
 	
 public:	
 	// Sets default values for this actor's properties
-	ATriggerableActor();
+    ATriggerableActor(const FObjectInitializer &PCIP);
 
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
@@ -55,4 +55,12 @@ public:
      * @brief IsActivated Is true if this trigger has been activated.
      */
     bool IsActivated;
+
+    UPROPERTY(EditAnywhere, Category = "Collision")
+    class USphereComponent *Collider;
+
+    // Sound
+public:
+    UPROPERTY(EditAnywhere, Category = "Sound")
+    class UAudioComponent *TriggerSound;
 };

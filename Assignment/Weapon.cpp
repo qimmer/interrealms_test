@@ -15,6 +15,10 @@ AWeapon::AWeapon(const class FObjectInitializer& PCIP)
 
     WeaponMesh = PCIP.CreateDefaultSubobject<UStaticMeshComponent>(this, TEXT("WeaponMesh"));
     WeaponMesh->AttachTo(RootComponent);
+
+    ShootSound = PCIP.CreateDefaultSubobject<UAudioComponent>(this, TEXT("ShootSound"));
+    ShootSound->bAutoActivate = false;
+    ShootSound->AttachTo(RootComponent);
 }
 
 void AWeapon::BeginPlay()
@@ -54,6 +58,7 @@ void AWeapon::Fire(AActor *Murderer)
                 {
                     Projectile->Weapon = this;
                     Projectile->Fire(SpawnDirection);
+                    ShootSound->Play();
                 }
             }
         }

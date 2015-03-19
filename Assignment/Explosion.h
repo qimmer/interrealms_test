@@ -30,6 +30,9 @@ public:
     UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
     class UParticleSystemComponent *ParticleSystem;
 
+    UPROPERTY(EditAnywhere)
+    USoundBase *ExplosionSound;
+
     UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
     /**
      * @brief Countdown The number of seconds from creation that this explosion

@@ -2,11 +2,22 @@
 
 #include "Assignment.h"
 #include "TriggerableActor.h"
-
+#include "Components/AudioComponent.h"
+#include "Components/SphereComponent.h"
 
 // Sets default values
-ATriggerableActor::ATriggerableActor()
+ATriggerableActor::ATriggerableActor(const FObjectInitializer &PCIP)
+    : Super(PCIP)
 {
+    Collider = PCIP.CreateDefaultSubobject<USphereComponent>(this, TEXT("Collider"));
+    Collider->InitSphereRadius(64.0f);
+    Collider->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
+    RootComponent = Collider;
+
+    TriggerSound = PCIP.CreateDefaultSubobject<UAudioComponent>(this, TEXT("TriggerSound"));
+    TriggerSound->bAutoActivate = false;
+    TriggerSound->AttachTo(RootComponent);
+
  	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
 
@@ -36,6 +47,8 @@ void ATriggerableActor::Trigger()
         return;
 
     IsActivated = !IsActivated;
+
+    TriggerSound->Play();
 
     // Eventually rotate lever
     if( Lever )

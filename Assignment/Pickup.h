@@ -34,4 +34,7 @@ public: // Properties
 
     UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
     class UStaticMeshComponent *Container;
+
+    UPROPERTY(EditAnywhere, Category = "Sound")
+    class UAudioComponent *PickupSound;
 };

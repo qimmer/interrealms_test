@@ -14,7 +14,7 @@ class ASSIGNMENT_API AEnemy : public AAICharacter
 	GENERATED_BODY()
 	
 public:
-    AEnemy();
+    AEnemy(const FObjectInitializer &PCIP);
 
     // Called when the game starts or when spawned
     virtual void BeginPlay() override;

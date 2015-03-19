@@ -63,6 +63,7 @@ void AProjectile::OnHit(AActor *OtherActor, UPrimitiveComponent *OtherComp, FVec
         AExplosion* Explosion = GetWorld()->SpawnActor<AExplosion>(AExplosion::StaticClass(), Hit.ImpactPoint, FRotator(), SpawnParams);
         if (Explosion && Weapon)
         {
+            Explosion->ExplosionSound = Weapon->Data.ExplosionSound;
             Explosion->ParticleSystem->Template = Weapon->Data.ExplosionSystem;
             Explosion->Force->Radius = Weapon->Data.Damage;
         }

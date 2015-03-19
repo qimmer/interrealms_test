@@ -58,6 +58,9 @@ void AExplosion::Tick( float DeltaTime )
                     TArray<AActor*>(),
                     this);
 
+        if( ExplosionSound )
+            UGameplayStatics::PlaySoundAttached(ExplosionSound, GetRootComponent());
+
         Countdown = FLT_MAX;
     }
 }

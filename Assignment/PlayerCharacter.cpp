@@ -4,7 +4,8 @@
 #include "PlayerCharacter.h"
 #include "AIPlayerControlState.h"
 
-APlayerCharacter::APlayerCharacter()
+APlayerCharacter::APlayerCharacter(const FObjectInitializer &PCIP)
+    : Super(PCIP)
 {
     PlayerControlState = ConstructObject<UAIPlayerControlState>(UAIPlayerControlState::StaticClass(), this);
     PlayerControlState->NextState = PlayerControlState;

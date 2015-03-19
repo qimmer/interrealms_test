@@ -7,7 +7,8 @@
 #include "AIWalkToState.h"
 #include "AIAttackState.h"
 
-AEnemy::AEnemy()
+AEnemy::AEnemy(const FObjectInitializer &PCIP)
+    : Super(PCIP)
 {
 
 }

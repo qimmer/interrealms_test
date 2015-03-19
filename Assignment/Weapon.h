@@ -3,8 +3,8 @@
 #include "Engine/StaticMesh.h"
 #include "GameFramework/Actor.h"
 #include "Particles/ParticleSystem.h"
+#include "Sound/SoundBase.h"
 #include "Weapon.generated.h"
-
 
 UENUM(BlueprintType)
 namespace EWeapon
@@ -44,6 +44,9 @@ struct ASSIGNMENT_API FWeaponData
     UStaticMesh *ProjectileMesh;
 
     UPROPERTY(EditAnywhere)
+    USoundBase *ExplosionSound;
+
+    UPROPERTY(EditAnywhere)
     TSubclassOf<class AProjectile> ProjectileClass;
 };
 
@@ -68,4 +71,7 @@ public: // Properties
 
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
     class UStaticMeshComponent *WeaponMesh;
+
+    UPROPERTY(EditAnywhere, Category = "Sound")
+    class UAudioComponent *ShootSound;
 };

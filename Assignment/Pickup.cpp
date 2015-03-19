@@ -18,6 +18,10 @@ APickup::APickup(const FObjectInitializer &PCIP)
     Container->AttachTo(RootComponent);
     Container->SetCollisionResponseToAllChannels(ECR_Ignore);
 
+    PickupSound = PCIP.CreateDefaultSubobject<UAudioComponent>(this, TEXT("PickupSound"));
+    PickupSound->bAutoActivate = false;
+    PickupSound->AttachTo(RootComponent);
+
     Trigger->OnComponentBeginOverlap.AddDynamic(this, &APickup::OnTrigger);
 }
 
@@ -81,6 +85,7 @@ void APickup::OnTrigger(class AActor* OtherActor, class UPrimitiveComponent* Oth
     {
         if( PlayerCharacter->Pickup(ItemActor) )
         {
+            UGameplayStatics::PlaySoundAttached(PickupSound->Sound, PlayerCharacter->GetRootComponent());
             Drop(false);
         }
 

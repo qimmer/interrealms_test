@@ -14,7 +14,7 @@ class ASSIGNMENT_API APlayerCharacter : public AAICharacter
 	GENERATED_BODY()
 	
 public:
-    APlayerCharacter();
+    APlayerCharacter(const FObjectInitializer &PCIP);
 
     // Called when the game starts or when spawned
     virtual void BeginPlay() override;

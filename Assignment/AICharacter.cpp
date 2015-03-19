@@ -12,8 +12,33 @@
 #include "AIStateInterrupter.h"
 
 // Sets default values
-AAICharacter::AAICharacter()
+AAICharacter::AAICharacter(const FObjectInitializer &PCIP)
+    : Super(PCIP)
 {
+    StepSound = PCIP.CreateDefaultSubobject<UAudioComponent>(this, TEXT("StepSound"));
+    StepSound->bAutoActivate = false;
+    StepSound->AttachTo(RootComponent);
+
+    JumpSound = PCIP.CreateDefaultSubobject<UAudioComponent>(this, TEXT("JumpSound"));
+    JumpSound->bAutoActivate = false;
+    JumpSound->AttachTo(RootComponent);
+
+    LandSound = PCIP.CreateDefaultSubobject<UAudioComponent>(this, TEXT("LandSound"));
+    LandSound->bAutoActivate = false;
+    LandSound->AttachTo(RootComponent);
+
+    DamageReceiveSound = PCIP.CreateDefaultSubobject<UAudioComponent>(this, TEXT("DamageReceiveSound"));
+    DamageReceiveSound->bAutoActivate = false;
+    DamageReceiveSound->AttachTo(RootComponent);
+
+    DieSound = PCIP.CreateDefaultSubobject<UAudioComponent>(this, TEXT("DieSound"));
+    DieSound->bAutoActivate = false;
+    DieSound->AttachTo(RootComponent);
+
+    HitSound = PCIP.CreateDefaultSubobject<UAudioComponent>(this, TEXT("HitSound"));
+    HitSound->bAutoActivate = false;
+    HitSound->AttachTo(RootComponent);
+
  	// Set this character to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
 
@@ -31,6 +56,8 @@ AAICharacter::AAICharacter()
     Fist.FireInterval = 1.0f;
     Fist.Type = EWeapon::EMelee;
     Fist.MaxDistance = 160.0f;
+
+    StepDistance = 130.0f;
 }
 
 // Called when the game starts or when spawned
@@ -94,6 +121,8 @@ void AAICharacter::Tick( float DeltaTime )
             AnimInstance->AttackFactor -= DeltaTime;
 
         AnimInstance->IsDead = Health <= 0.0f;
+
+        NextStepDelta -= Velocity.Size() * DeltaTime;
     }
 
     // Smoothen AI controller rotation
@@ -101,6 +130,13 @@ void AAICharacter::Tick( float DeltaTime )
     if( AIController )
     {
         AIController->UpdateControlRotation(DeltaTime, false);
+    }
+
+    // Play step sound
+    if( NextStepDelta <= 0.0f && GetMovementComponent()->IsMovingOnGround() )
+    {
+        UGameplayStatics::PlaySoundAttached(StepSound->Sound, RootComponent);
+        NextStepDelta = StepDistance;
     }
 }
 
@@ -258,6 +294,8 @@ bool AAICharacter::Attack()
     else // Else, melee attack
     {
         NextAttackTime = Fist.FireInterval;
+
+        HitSound->Play();
 
         UCharacterAnimInstance *AnimInstance = Cast<UCharacterAnimInstance>(GetMesh()->AnimScriptInstance);
         if( AnimInstance )

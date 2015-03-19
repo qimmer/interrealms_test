@@ -22,7 +22,7 @@ class ASSIGNMENT_API AAICharacter : public ACharacter
 
 public:
 	// Sets default values for this character's properties
-	AAICharacter();
+    AAICharacter(const FObjectInitializer &PCIP);
 
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
@@ -107,6 +107,26 @@ public:
     UPROPERTY(EditAnywhere, Category = "AI")
     FWeaponData Fist;
 
+    // Sound
+public:
+    UPROPERTY(EditAnywhere, Category = "Sound")
+    class UAudioComponent *StepSound;
+
+    UPROPERTY(EditAnywhere, Category = "Sound")
+    class UAudioComponent *JumpSound;
+
+    UPROPERTY(EditAnywhere, Category = "Sound")
+    class UAudioComponent *LandSound;
+
+    UPROPERTY(EditAnywhere, Category = "Sound")
+    class UAudioComponent *DamageReceiveSound;
+
+    UPROPERTY(EditAnywhere, Category = "Sound")
+    class UAudioComponent *DieSound;
+
+    UPROPERTY(EditAnywhere, Category = "Sound")
+    class UAudioComponent *HitSound;
+
     // Control Parameters
 public:
     UPROPERTY(EditAnywhere, Category = "Control")
@@ -120,6 +140,12 @@ public:
      * @brief TriggerRange The max. range this character can trigger triggers.
      */
     float TriggerRange;
+
+    UPROPERTY(EditAnywhere)
+    /**
+     * @brief StepDistance The distance between step sounds
+     */
+    float StepDistance;
 
     UPROPERTY(EditAnywhere, Category = "AI")
     TArray<class UAIStateInterrupter *> StateInterrupters;
@@ -158,4 +184,9 @@ private:
     * @brief NextAttackTime The time left before we can attack again
     */
    float NextAttackTime;
+
+   /**
+    * @brief NextStepDelta How long the character must travel before next step sound
+    */
+   float NextStepDelta;
 };
